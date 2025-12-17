@@ -1,5 +1,6 @@
 package com.example.HomeServices.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,11 +20,13 @@ public class Payment {
     // Связь с пользователем
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JsonBackReference
     private User user;
 
     // Связь со счетом
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bill_id", referencedColumnName = "id")
+    @JsonBackReference
     private Bill bill;
 
     private BigDecimal amount;

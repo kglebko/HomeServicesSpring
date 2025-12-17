@@ -1,5 +1,7 @@
 package com.example.HomeServices.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,16 +38,17 @@ public class Bill {
     @Column(name = "status", columnDefinition = "ENUM('Оплачено', 'Не оплачено')")
     private String status;
 
-    // Связь с пользователем (без обратной связи, т.к. в таблице только user_id)
+    // Связь с пользователем
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JsonBackReference // Обратная ссылка
     private User user;
 
     // Связь с платежами
     @OneToMany(mappedBy = "bill", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Payment> payments = new ArrayList<>();
 
-    // Конструкторы
     public Bill() {
     }
 

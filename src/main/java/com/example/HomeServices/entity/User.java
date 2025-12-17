@@ -1,5 +1,7 @@
 package com.example.HomeServices.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,13 +29,16 @@ public class User {
 
     // Связь с показаниями счетчиков
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<MeterReading> meterReadings = new ArrayList<>();
 
     // Связь со счетами
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Bill> bills = new ArrayList<>();
 
     // Связь с платежами
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Payment> payments = new ArrayList<>();
 }
