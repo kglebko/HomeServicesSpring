@@ -3,7 +3,7 @@ package com.example.HomeServices.controller;
 import com.example.HomeServices.dto.CreateNewsDto;
 import com.example.HomeServices.dto.NewsDto;
 import com.example.HomeServices.dto.NewsShortDto;
-import com.example.HomeServices.service.PaymentService;
+import com.example.HomeServices.service.NewsService; // ПРАВИЛЬНЫЙ ИМПОРТ!
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,7 +26,8 @@ import java.util.Map;
 @Tag(name = "Новости", description = "API для управления новостями")
 public class NewsController {
 
-    private final PaymentService.NewsService newsService;
+    // ПРАВИЛЬНО: отдельный сервис для новостей
+    private final NewsService newsService;
 
     @GetMapping("/latest")
     @Operation(summary = "Получить последние новости")
@@ -49,7 +50,7 @@ public class NewsController {
             @Parameter(description = "Поле для сортировки", example = "createdAt")
             @RequestParam(defaultValue = "createdAt") String sortBy,
 
-            @Parameter(description = "Нaправление сортировки", example = "DESC")
+            @Parameter(description = "Направление сортировки", example = "DESC")
             @RequestParam(defaultValue = "DESC") String direction) {
 
         Sort sort = direction.equalsIgnoreCase("ASC")
@@ -59,7 +60,6 @@ public class NewsController {
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<NewsShortDto> newsPage = newsService.getAllNews(pageable);
 
-        // Создаем ручной ответ вместо возврата Page
         Map<String, Object> response = new HashMap<>();
         response.put("content", newsPage.getContent());
         response.put("currentPage", newsPage.getNumber());
@@ -132,7 +132,6 @@ public class NewsController {
         Pageable pageable = PageRequest.of(page, size);
         Page<NewsShortDto> resultsPage = newsService.searchNews(query, pageable);
 
-        // Аналогичная структура ответа
         Map<String, Object> response = new HashMap<>();
         response.put("content", resultsPage.getContent());
         response.put("currentPage", resultsPage.getNumber());
@@ -145,11 +144,10 @@ public class NewsController {
         return ResponseEntity.ok(response);
     }
 
-    // Добавьте этот метод для тестирования
     @GetMapping("/test")
     public ResponseEntity<Map<String, String>> testApi() {
         Map<String, String> response = new HashMap<>();
-        response.put("message", "API работает!");
+        response.put("message", "News API работает!");
         response.put("status", "success");
         response.put("timestamp", java.time.LocalDateTime.now().toString());
         return ResponseEntity.ok(response);
