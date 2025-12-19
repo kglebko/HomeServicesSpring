@@ -4,7 +4,7 @@ package com.example.HomeServices.controller;
 import com.example.HomeServices.dto.CreateNewsDto;
 import com.example.HomeServices.dto.NewsDto;
 import com.example.HomeServices.dto.NewsShortDto;
-import com.example.HomeServices.service.NewsService;
+import com.example.HomeServices.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,7 +26,7 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class NewsController {
 
-    private final NewsService newsService;
+    private final PaymentService.NewsService newsService;
 
     @GetMapping("/latest")
     @Operation(summary = "Получить последние новости",
