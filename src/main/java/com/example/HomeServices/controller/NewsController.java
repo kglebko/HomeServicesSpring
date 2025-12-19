@@ -1,4 +1,3 @@
-// src/main/java/com/example/HomeServices/controller/NewsController.java
 package com.example.HomeServices.controller;
 
 import com.example.HomeServices.dto.CreateNewsDto;
@@ -17,20 +16,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/news")
 @RequiredArgsConstructor
 @Tag(name = "Новости", description = "API для управления новостями")
-@CrossOrigin(origins = "*")
 public class NewsController {
 
     private final PaymentService.NewsService newsService;
 
     @GetMapping("/latest")
-    @Operation(summary = "Получить последние новости",
-            description = "Возвращает указанное количество последних новостей (для главной страницы)")
+    @Operation(summary = "Получить последние новости")
     public ResponseEntity<List<NewsShortDto>> getLatestNews(
             @Parameter(description = "Количество новостей", example = "2")
             @RequestParam(defaultValue = "2") int count) {
@@ -40,7 +39,7 @@ public class NewsController {
 
     @GetMapping
     @Operation(summary = "Получить все новости с пагинацией")
-    public ResponseEntity<Page<NewsShortDto>> getAllNews(
+    public ResponseEntity<Map<String, Object>> getAllNews(
             @Parameter(description = "Номер страницы", example = "0")
             @RequestParam(defaultValue = "0") int page,
 
@@ -50,7 +49,7 @@ public class NewsController {
             @Parameter(description = "Поле для сортировки", example = "createdAt")
             @RequestParam(defaultValue = "createdAt") String sortBy,
 
-            @Parameter(description = "Направление сортировки", example = "DESC")
+            @Parameter(description = "Нaправление сортировки", example = "DESC")
             @RequestParam(defaultValue = "DESC") String direction) {
 
         Sort sort = direction.equalsIgnoreCase("ASC")
@@ -58,9 +57,21 @@ public class NewsController {
                 : Sort.by(sortBy).descending();
 
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<NewsShortDto> news = newsService.getAllNews(pageable);
+        Page<NewsShortDto> newsPage = newsService.getAllNews(pageable);
 
-        return ResponseEntity.ok(news);
+        // Создаем ручной ответ вместо возврата Page
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", newsPage.getContent());
+        response.put("currentPage", newsPage.getNumber());
+        response.put("totalItems", newsPage.getTotalElements());
+        response.put("totalPages", newsPage.getTotalPages());
+        response.put("pageSize", newsPage.getSize());
+        response.put("hasNext", newsPage.hasNext());
+        response.put("hasPrevious", newsPage.hasPrevious());
+        response.put("isFirst", newsPage.isFirst());
+        response.put("isLast", newsPage.isLast());
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
@@ -111,7 +122,7 @@ public class NewsController {
 
     @GetMapping("/search")
     @Operation(summary = "Поиск новостей")
-    public ResponseEntity<Page<NewsShortDto>> searchNews(
+    public ResponseEntity<Map<String, Object>> searchNews(
             @Parameter(description = "Поисковый запрос", example = "новый год")
             @RequestParam String query,
 
@@ -119,8 +130,28 @@ public class NewsController {
             @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<NewsShortDto> results = newsService.searchNews(query, pageable);
+        Page<NewsShortDto> resultsPage = newsService.searchNews(query, pageable);
 
-        return ResponseEntity.ok(results);
+        // Аналогичная структура ответа
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", resultsPage.getContent());
+        response.put("currentPage", resultsPage.getNumber());
+        response.put("totalItems", resultsPage.getTotalElements());
+        response.put("totalPages", resultsPage.getTotalPages());
+        response.put("pageSize", resultsPage.getSize());
+        response.put("hasNext", resultsPage.hasNext());
+        response.put("hasPrevious", resultsPage.hasPrevious());
+
+        return ResponseEntity.ok(response);
+    }
+
+    // Добавьте этот метод для тестирования
+    @GetMapping("/test")
+    public ResponseEntity<Map<String, String>> testApi() {
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "API работает!");
+        response.put("status", "success");
+        response.put("timestamp", java.time.LocalDateTime.now().toString());
+        return ResponseEntity.ok(response);
     }
 }
