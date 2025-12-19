@@ -18,28 +18,24 @@ public class Request {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Связь с услугой
     @ManyToOne
     @JoinColumn(name = "service_id", nullable = false)
     private Service service;
 
-    // Статус заявки
+
     @Enumerated(EnumType.STRING)
     private RequestStatus status;
 
-    // Дата и время выбранного интервала
+
     private LocalDate selectedDate;
     private LocalTime selectedStartTime;
     private LocalTime selectedEndTime;
 
-    // Точная дата и время оказания услуги
     private LocalDate actualDate;
     private LocalTime actualTime;
 
-    // Комментарий пользователя
     private String comment;
 
-    // Стоимость
-    private BigDecimal estimatedPrice; // примерная стоимость
-    private BigDecimal actualPrice;    // оплаченная стоимость
+    private BigDecimal estimatedPrice;
+    private BigDecimal actualPrice;
 }

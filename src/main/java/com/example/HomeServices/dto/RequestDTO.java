@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,7 +16,7 @@ public class RequestDTO {
     private String status;
     private String scheduledPeriod;
     private String actualTime;
-    private String estimatedPrice;
-    private String paidPrice;
+    private BigDecimal estimatedPrice;
+    private BigDecimal paidPrice;
     private String comment;
 }
