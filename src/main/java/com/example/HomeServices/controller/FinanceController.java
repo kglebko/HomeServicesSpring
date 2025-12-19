@@ -30,7 +30,6 @@ public class FinanceController {
     private final MeterReadingRepository meterReadingRepository;
     private final PaymentService paymentService;
 
-    // Получение информации о пользователе (без связанных сущностей)
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getUser(@PathVariable Long userId) {
         try {
@@ -41,7 +40,6 @@ public class FinanceController {
                 return ResponseEntity.ok(Collections.singletonMap("message", "Пользователь не найден"));
             }
 
-            // Создаем простой объект без циклических ссылок
             var response = new java.util.HashMap<String, Object>();
             response.put("id", user.getId());
             response.put("firstName", user.getFirstName());
@@ -55,7 +53,6 @@ public class FinanceController {
         }
     }
 
-    // Получение всех счетов пользователя (используем DTO)
     @GetMapping("/bills/{userId}")
     public ResponseEntity<?> getBills(@PathVariable Long userId) {
         try {
