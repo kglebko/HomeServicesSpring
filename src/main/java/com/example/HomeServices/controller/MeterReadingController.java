@@ -29,7 +29,10 @@ public class MeterReadingController {
 
             MeterReading reading = new MeterReading();
             reading.setUser(user);
-            reading.setReadingMonth(LocalDate.now().withDayOfMonth(1));
+
+            //"YYYY-MM"
+            reading.setReadingMonth(LocalDate.parse(request.getMonth() + "-01"));
+
             reading.setMeter1(request.getMeter1());
             reading.setMeter2(request.getMeter2());
             reading.setMeter3(request.getMeter3());
@@ -56,4 +59,5 @@ class MeterReadingRequest {
     private Integer meter2;
     private Integer meter3;
     private Integer meter4;
+    private String month;
 }

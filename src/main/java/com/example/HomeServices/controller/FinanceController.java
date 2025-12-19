@@ -143,48 +143,36 @@ public class FinanceController {
         }
     }
 
-    // Текущий неоплаченный счет (используем DTO)
     @GetMapping("/current/{userId}")
     public ResponseEntity<?> getCurrentBill(@PathVariable Long userId) {
-        try {
-            Bill bill = billRepository
-                    .findFirstByUserIdAndStatusOrderByPeriodDesc(userId, "Не оплачено")
-                    .orElse(null);
+        Bill bill = billRepository
+                .findFirstByUserIdAndStatusOrderByPeriodDesc(userId, "Не оплачено")
+                .orElse(null);
 
-            if (bill == null) {
-                return ResponseEntity.ok(Collections.emptyMap());
-            }
-
-            // Используем DTO вместо сущности
-            BillResponseDto response = new BillResponseDto(
-                    bill.getId(),
-                    bill.getUserId(),
-                    bill.getPeriod(),
-                    bill.getAccruedAmount(),
-                    bill.getAccruedDate(),
-                    bill.getMeterSum(),
-                    bill.getStatus()
-            );
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(Collections.singletonMap("error", e.getMessage()));
+        if (bill == null) {
+            return ResponseEntity.ok(Collections.emptyMap());
         }
+
+        return ResponseEntity.ok(
+                new BillResponseDto(
+                        bill.getId(),
+                        bill.getUserId(),
+                        bill.getPeriod(),
+                        bill.getAccruedAmount(),
+                        bill.getAccruedDate(),
+                        bill.getMeterSum(),
+                        bill.getStatus()
+                )
+        );
     }
 
-    // Оплата счета
     @PostMapping("/pay/{billId}")
     public ResponseEntity<?> payBill(
             @PathVariable Long billId,
             @RequestParam BigDecimal amount
     ) {
-        try {
-            paymentService.pay(billId, amount);
-            return ResponseEntity.ok(Collections.singletonMap("message", "Счет успешно оплачен"));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(Collections.singletonMap("error", "Ошибка при оплате: " + e.getMessage()));
-        }
+        paymentService.pay(billId, amount);
+        return ResponseEntity.ok(Collections.singletonMap("message", "Оплачено"));
     }
+
 }

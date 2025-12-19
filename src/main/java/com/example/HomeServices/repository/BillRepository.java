@@ -14,4 +14,5 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     Optional<Bill> findFirstByUserIdAndStatusOrderByPeriodDesc(Long userId, String status);
 
     List<Bill> findByUserId(Long userId);
+
 }
