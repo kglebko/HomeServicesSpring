@@ -1,12 +1,17 @@
 package com.example.HomeServices.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 import java.time.LocalDate;
 
-public record MeterReadingDto(
-        Long id,
-        LocalDate readingMonth,
-        Integer meter1,
-        Integer meter2,
-        Integer meter3,
-        Integer meter4
-) {}
+@Data
+@AllArgsConstructor
+public class MeterReadingDto {
+    private Long id;
+    private LocalDate readingMonth;
+    private Integer meter1;
+    private Integer meter2;
+    private Integer meter3;
+    private Integer meter4;
+}

@@ -9,4 +9,5 @@ public class MeterReadingRequest {
     private Integer meter2;
     private Integer meter3;
     private Integer meter4;
+    private String month;
 }
