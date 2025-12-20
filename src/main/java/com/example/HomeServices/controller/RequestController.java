@@ -1,9 +1,12 @@
 package com.example.HomeServices.controller;
 
+import com.example.HomeServices.dto.CreateRequestDto;
 import com.example.HomeServices.dto.RequestDTO;
 import com.example.HomeServices.entity.Request;
 import com.example.HomeServices.entity.RequestStatus;
+import com.example.HomeServices.entity.Service;
 import com.example.HomeServices.repository.RequestRepository;
+import com.example.HomeServices.repository.ServiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,22 +20,32 @@ import java.util.stream.Collectors;
 public class RequestController {
 
     private final RequestRepository requestRepository;
+    private final ServiceRepository serviceRepository;
+
+    @PostMapping
+    public ResponseEntity<Request> createRequest(@RequestBody CreateRequestDto dto) {
+        Service service = serviceRepository.findById(dto.getServiceId())
+                .orElseThrow(() -> new RuntimeException("Service not found with id: " + dto.getServiceId()));
+
+        Request request = new Request();
+        request.setService(service);
+        request.setStatus(RequestStatus.PENDING); // Устанавливаем статус PENDING
+        request.setSelectedDate(dto.getSelectedDate());
+        request.setSelectedStartTime(dto.getSelectedStartTime());
+        request.setSelectedEndTime(dto.getSelectedEndTime());
+        request.setComment(dto.getComment());
+        request.setEstimatedPrice(dto.getEstimatedPrice());
+        request.setUserId(dto.getUserId());
+
+        Request savedRequest = requestRepository.save(request);
+        return ResponseEntity.ok(savedRequest);
+    }
 
     @GetMapping("/current")
     public List<RequestDTO> getCurrentRequests() {
         return requestRepository.findByStatusIn(List.of(RequestStatus.PENDING, RequestStatus.ACCEPTED))
                 .stream()
-                .map(req -> new RequestDTO(
-                        req.getId(),
-                        req.getService().getName(),
-                        req.getStatus().name(),
-                        req.getSelectedDate() + " " +
-                                (req.getSelectedStartTime() != null ? req.getSelectedStartTime() : ""),
-                        req.getActualTime() != null ? req.getActualTime().toString() : null,
-                        req.getEstimatedPrice() != null ? req.getEstimatedPrice() : req.getService().getPrice(),
-                        req.getActualPrice(),
-                        req.getComment()
-                ))
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
@@ -40,23 +53,8 @@ public class RequestController {
     public List<RequestDTO> getHistoryRequests() {
         return requestRepository.findByStatusIn(List.of(RequestStatus.CANCELLED, RequestStatus.COMPLETED))
                 .stream()
-                .map(req -> new RequestDTO(
-                        req.getId(),
-                        req.getService().getName(),
-                        req.getStatus().name(),
-                        req.getSelectedDate() + " " +
-                                (req.getSelectedStartTime() != null ? req.getSelectedStartTime() : ""),
-                        req.getActualTime() != null ? req.getActualTime().toString() : null,
-                        req.getEstimatedPrice() != null ? req.getEstimatedPrice() : req.getService().getPrice(),
-                        req.getActualPrice(),
-                        req.getComment()
-                ))
+                .map(this::convertToDTO)
                 .collect(Collectors.toList());
-    }
-
-    @PostMapping("/create")
-    public Request createRequest(@RequestBody Request request) {
-        return requestRepository.save(request);
     }
 
     @PostMapping("/{id}/cancel")
@@ -65,19 +63,22 @@ public class RequestController {
                 .map(req -> {
                     req.setStatus(RequestStatus.CANCELLED);
                     Request updated = requestRepository.save(req);
-                    RequestDTO dto = new RequestDTO(
-                            updated.getId(),
-                            updated.getService().getName(),
-                            updated.getStatus().name(),
-                            updated.getSelectedDate() + " " +
-                                    (updated.getSelectedStartTime() != null ? updated.getSelectedStartTime() : ""),
-                            updated.getActualTime() != null ? updated.getActualTime().toString() : null,
-                            updated.getEstimatedPrice() != null ? updated.getEstimatedPrice() : updated.getService().getPrice(),
-                            updated.getActualPrice(),
-                            updated.getComment()
-                    );
-                    return ResponseEntity.ok(dto);
+                    return ResponseEntity.ok(convertToDTO(updated));
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    private RequestDTO convertToDTO(Request req) {
+        return new RequestDTO(
+                req.getId(),
+                req.getService().getName(),
+                req.getStatus().name(),
+                req.getSelectedDate() + " " +
+                        (req.getSelectedStartTime() != null ? req.getSelectedStartTime() : ""),
+                req.getActualTime() != null ? req.getActualTime().toString() : null,
+                req.getEstimatedPrice() != null ? req.getEstimatedPrice() : req.getService().getPrice(),
+                req.getActualPrice(),
+                req.getComment()
+        );
     }
 }

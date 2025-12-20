@@ -22,10 +22,9 @@ public class Request {
     @JoinColumn(name = "service_id", nullable = false)
     private Service service;
 
-
     @Enumerated(EnumType.STRING)
-    private RequestStatus status;
-
+    @Column(nullable = false)
+    private RequestStatus status = RequestStatus.PENDING;
 
     private LocalDate selectedDate;
     private LocalTime selectedStartTime;
@@ -38,4 +37,7 @@ public class Request {
 
     private BigDecimal estimatedPrice;
     private BigDecimal actualPrice;
+
+    @Column(name = "user_id")
+    private Long userId;
 }
