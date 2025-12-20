@@ -3,155 +3,196 @@ package com.example.HomeServices.service;
 import com.example.HomeServices.dto.CreateNewsDto;
 import com.example.HomeServices.dto.NewsDto;
 import com.example.HomeServices.dto.NewsShortDto;
+import com.example.HomeServices.entity.News;
+import com.example.HomeServices.repository.NewsRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class NewsService {
 
+    private final NewsRepository newsRepository;
+
+    // ========== ПУБЛИЧНЫЕ МЕТОДЫ ==========
+
     public List<NewsShortDto> getLatestNews(int count) {
-        List<NewsShortDto> news = new ArrayList<>();
+        log.info("📰 Получение последних {} новостей", count);
+        List<News> newsList = newsRepository.findLatestNews(count);
+        log.info("✅ Найдено {} новостей", newsList.size());
 
-        for (int i = 1; i <= Math.min(count, 5); i++) {
-            NewsShortDto dto = new NewsShortDto();
-            dto.setId((long) i);
-            dto.setTitle("Новость " + i);
-            dto.setContent("Краткое содержание новости " + i);
-            dto.setCategory("Общие");
-            dto.setImageUrl("/images/news" + i + ".jpg");
-            dto.setTimeAgo(i + " часа назад");
-            dto.setLikesCount(i * 10);      // ПРАВИЛЬНО: likesCount, а не likes!
-            dto.setCommentsCount(i * 3);    // commentsCount
-            dto.setViewCount(i * 50);       // ПРАВИЛЬНО: viewCount, а не views!
-            dto.setCreatedAt(LocalDateTime.now().minusHours(i));
-
-            news.add(dto);
-        }
-
-        return news;
+        return newsList.stream()
+                .map(this::convertToShortDto)
+                .collect(Collectors.toList());
     }
 
     public Page<NewsShortDto> getAllNews(Pageable pageable) {
-        // TODO: Реальная логика из БД с пагинацией
-        List<NewsShortDto> news = new ArrayList<>();
-
-        // Пример данных
-        for (int i = 1; i <= 10; i++) {
-            NewsShortDto dto = new NewsShortDto();
-            dto.setId((long) i);
-            dto.setTitle("Новость " + i);
-            dto.setContent("Содержание " + i);
-            dto.setCategory("Категория " + (i % 3 + 1));
-            dto.setLikesCount(i * 15);
-            dto.setViewCount(i * 75);
-            dto.setCreatedAt(LocalDateTime.now().minusDays(i));
-            news.add(dto);
-        }
-
-        return new PageImpl<>(news, pageable, news.size());
+        Page<News> newsPage = newsRepository.findByIsActiveTrueOrderByCreatedAtDesc(pageable);
+        return newsPage.map(this::convertToShortDto);
     }
 
     public NewsDto getNewsById(Long id) {
-        NewsDto dto = new NewsDto();
-        dto.setId(id);
-        dto.setTitle("Полная новость " + id);
-        dto.setContent("Краткое содержание");
-        dto.setFullContent("Полное подробное содержание новости...");
-        dto.setCategory("Образование");
-        dto.setImageUrl("/images/full-news.jpg");
-        dto.setAuthor("Администратор");
-        dto.setViewCount(150);
-        dto.setLikesCount(25);
-        dto.setCommentsCount(8);
-        dto.setIsActive(true);
-        dto.setCreatedAt(LocalDateTime.now().minusDays(2));
-        dto.setUpdatedAt(LocalDateTime.now().minusHours(3));
-        dto.setTimeAgo("2 дня назад");
-
-        return dto;
+        News news = newsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Новость с ID " + id + " не найдена"));
+        incrementViews(news);
+        return convertToDto(news);
     }
 
+    @Transactional
     public NewsDto createNews(CreateNewsDto createDto) {
-        NewsDto dto = new NewsDto();
-        dto.setId(1L); // В реальности ID генерирует БД
-        dto.setTitle(createDto.getTitle());
-        dto.setContent(createDto.getContent());
-        dto.setFullContent(createDto.getFullContent());
-        dto.setCategory(createDto.getCategory());
-        dto.setImageUrl(createDto.getImageUrl());
-        dto.setAuthor(createDto.getAuthor());
-        dto.setViewCount(0);
-        dto.setLikesCount(0);
-        dto.setCommentsCount(0);
-        dto.setIsActive(true);
-        dto.setCreatedAt(LocalDateTime.now());
-        dto.setUpdatedAt(LocalDateTime.now());
-        dto.setTimeAgo("только что");
+        log.info("Создание новости: {}", createDto.getTitle());
 
-        return dto;
+        News news = new News();
+        news.setTitle(createDto.getTitle());
+        news.setContent(createDto.getContent());
+        news.setFullContent(createDto.getFullContent());
+        news.setCategory(createDto.getCategory());
+        news.setImageUrl(createDto.getImageUrl());
+        news.setAuthor(createDto.getAuthor() != null ? createDto.getAuthor() : "Администрация");
+        news.setViewCount(0);
+        news.setLikesCount(0);
+        news.setCommentsCount(0);
+        news.setIsActive(true);
+
+        News saved = newsRepository.save(news);
+        log.info("✅ Создана новость с ID: {}", saved.getId());
+
+        return convertToDto(saved);
     }
 
+    @Transactional
     public NewsDto updateNews(Long id, CreateNewsDto createDto) {
-        NewsDto dto = new NewsDto();
-        dto.setId(id);
-        dto.setTitle(createDto.getTitle());
-        dto.setContent(createDto.getContent());
-        dto.setFullContent(createDto.getFullContent());
-        dto.setCategory(createDto.getCategory());
-        dto.setImageUrl(createDto.getImageUrl());
-        dto.setAuthor(createDto.getAuthor());
-        dto.setViewCount(100); // существующие данные
-        dto.setLikesCount(30); // существующие данные
-        dto.setCommentsCount(5); // существующие данные
-        dto.setIsActive(true);
-        dto.setCreatedAt(LocalDateTime.now().minusDays(5));
-        dto.setUpdatedAt(LocalDateTime.now());
-        dto.setTimeAgo("обновлено только что");
+        News news = newsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Новость с ID " + id + " не найдена"));
 
-        return dto;
+        news.setTitle(createDto.getTitle());
+        news.setContent(createDto.getContent());
+        news.setFullContent(createDto.getFullContent());
+        news.setCategory(createDto.getCategory());
+        news.setImageUrl(createDto.getImageUrl());
+        if (createDto.getAuthor() != null) {
+            news.setAuthor(createDto.getAuthor());
+        }
+
+        News updated = newsRepository.save(news);
+        log.info("✅ Обновлена новость с ID: {}", id);
+
+        return convertToDto(updated);
     }
 
+    @Transactional
     public void deleteNews(Long id) {
-        // В реальности: помечаем isActive = false
-        System.out.println("Новость с ID " + id + " помечена как неактивная (мягкое удаление)");
+        News news = newsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Новость с ID " + id + " не найдена"));
+        news.setIsActive(false);
+        newsRepository.save(news);
+        log.info("✅ Новость с ID {} деактивирована", id);
     }
 
+    @Transactional
     public NewsDto likeNews(Long id) {
-        NewsDto dto = new NewsDto();
-        dto.setId(id);
-        dto.setTitle("Новость с увеличенным лайком");
-        dto.setLikesCount(101); // Увеличили на 1
-        dto.setViewCount(155);
-        dto.setUpdatedAt(LocalDateTime.now());
-
-        return dto;
+        News news = newsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Новость с ID " + id + " не найдена"));
+        news.setLikesCount((news.getLikesCount() != null ? news.getLikesCount() : 0) + 1);
+        News liked = newsRepository.save(news);
+        return convertToDto(liked);
     }
 
     public Page<NewsShortDto> searchNews(String query, Pageable pageable) {
-        List<NewsShortDto> results = new ArrayList<>();
+        return newsRepository.searchNews(query, pageable)
+                .map(this::convertToShortDto);
+    }
 
-        // Пример поиска
-        if (query != null && !query.trim().isEmpty()) {
-            for (int i = 1; i <= 3; i++) {
-                NewsShortDto dto = new NewsShortDto();
-                dto.setId((long) i);
-                dto.setTitle("Результат поиска: " + query + " " + i);
-                dto.setContent("Найдено по запросу: " + query);
-                dto.setLikesCount(i * 5);
-                dto.setViewCount(i * 20);
-                dto.setCreatedAt(LocalDateTime.now().minusHours(i));
-                results.add(dto);
-            }
+    @Transactional
+    public void incrementViews(News news) {
+        news.setViewCount((news.getViewCount() != null ? news.getViewCount() : 0) + 1);
+        newsRepository.save(news);
+        log.debug("📈 Увеличены просмотры для новости ID: {}", news.getId());
+    }
+
+    // ========== ПРИВАТНЫЕ МЕТОДЫ ==========
+
+    private NewsShortDto convertToShortDto(News news) {
+        NewsShortDto dto = new NewsShortDto();
+        dto.setId(news.getId());
+        dto.setTitle(news.getTitle());
+        dto.setContent(news.getContent());
+        dto.setCategory(news.getCategory() != null ? news.getCategory() : "Общие");
+
+        // Просто возвращаем относительный путь
+        String imageUrl = news.getImageUrl();
+        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+            dto.setImageUrl("/uploads/" + imageUrl);
+        } else {
+            dto.setImageUrl(null);
         }
 
-        return new PageImpl<>(results, pageable, results.size());
+        dto.setCreatedAt(news.getCreatedAt());
+        dto.setTimeAgo(calculateTimeAgo(news.getCreatedAt()));
+        dto.setLikesCount(news.getLikesCount() != null ? news.getLikesCount() : 0);
+        dto.setCommentsCount(news.getCommentsCount() != null ? news.getCommentsCount() : 0);
+        dto.setViewCount(news.getViewCount() != null ? news.getViewCount() : 0);
+
+        return dto;
+    }
+
+    private NewsDto convertToDto(News news) {
+        NewsDto dto = new NewsDto();
+        dto.setId(news.getId());
+        dto.setTitle(news.getTitle());
+        dto.setContent(news.getContent());
+        dto.setFullContent(news.getFullContent());
+        dto.setCategory(news.getCategory() != null ? news.getCategory() : "Общие");
+
+        // Та же логика
+        String imageUrl = news.getImageUrl();
+        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+            dto.setImageUrl("/uploads/" + imageUrl);
+        } else {
+            dto.setImageUrl(null);
+        }
+
+        dto.setAuthor(news.getAuthor() != null ? news.getAuthor() : "Администрация");
+        dto.setViewCount(news.getViewCount() != null ? news.getViewCount() : 0);
+        dto.setLikesCount(news.getLikesCount() != null ? news.getLikesCount() : 0);
+        dto.setCommentsCount(news.getCommentsCount() != null ? news.getCommentsCount() : 0);
+        dto.setIsActive(news.getIsActive() != null ? news.getIsActive() : true);
+        dto.setCreatedAt(news.getCreatedAt());
+        dto.setUpdatedAt(news.getUpdatedAt());
+        dto.setTimeAgo(calculateTimeAgo(news.getCreatedAt()));
+
+        return dto;
+    }
+
+    private String calculateTimeAgo(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return "недавно";
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        long hours = java.time.Duration.between(dateTime, now).toHours();
+
+        if (hours < 1) {
+            long minutes = java.time.Duration.between(dateTime, now).toMinutes();
+            if (minutes < 1) {
+                return "только что";
+            }
+            return minutes + " мин. назад";
+        } else if (hours < 24) {
+            return hours + " час. назад";
+        } else {
+            long days = hours / 24;
+            return days + " дн. назад";
+        }
     }
 }

@@ -1,31 +1,44 @@
 package com.example.HomeServices.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.nio.file.Paths;
+import jakarta.annotation.PostConstruct;
+import java.io.File;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${file.upload-dir:./uploads/news_photos}")
+    @Value("${file.upload-dir}")
     private String uploadDir;
+
+    @PostConstruct
+    public void init() {
+        File dir = new File(uploadDir);
+        System.out.println("📁 Папка для изображений: " + dir.getAbsolutePath());
+        System.out.println("📁 Существует: " + dir.exists());
+
+        if (!dir.exists()) {
+            dir.mkdirs();
+            System.out.println("✅ Создана папка");
+        }
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Преобразуем путь для доступа к файлам
-        String absolutePath = Paths.get(uploadDir).toAbsolutePath().toString();
+        File dir = new File(uploadDir);
+        String absolutePath = dir.getAbsolutePath();
+        String resourceLocation = "file:" + absolutePath.replace("\\", "/") + "/";
 
-        // Для Windows: заменяем обратные слеши
-        String fileUrl = "file:" + absolutePath.replace("\\", "/") + "/";
+        System.out.println("🌐 Регистрируем доступ к файлам:");
+        System.out.println("   Папка: " + absolutePath);
+        System.out.println("   URL: http://localhost:8080/uploads/");
 
-        // Настраиваем доступ к файлам через URL /uploads/**
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations(fileUrl);
-
+                .addResourceLocations(resourceLocation);
     }
 
     @Override
