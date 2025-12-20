@@ -3,8 +3,7 @@ package com.example.HomeServices.controller;
 import com.example.HomeServices.dto.CreateNewsDto;
 import com.example.HomeServices.dto.NewsDto;
 import com.example.HomeServices.dto.NewsShortDto;
-import com.example.HomeServices.service.PaymentService;
-import io.swagger.v3.oas.annotations.Operation;
+import com.example.HomeServices.service.NewsService;import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,7 @@ import java.util.Map;
 @Tag(name = "Новости", description = "API для управления новостями")
 public class NewsController {
 
-    private final PaymentService.NewsService newsService;
+    private final NewsService newsService;
 
     @GetMapping("/latest")
     @Operation(summary = "Получить последние новости")
