@@ -23,13 +23,13 @@ public class ImageController {
         try {
             // Абсолютный путь к вашей папке
             String absolutePath = "D:\\4 курс\\Curs4\\news_photos\\" + filename;
-            System.out.println("📁 Путь к файлу: " + absolutePath);
+            System.out.println("Путь к файлу: " + absolutePath);
 
             Path path = Paths.get(absolutePath);
 
             if (Files.exists(path) && Files.isRegularFile(path)) {
                 byte[] imageData = Files.readAllBytes(path);
-                System.out.println("✅ Файл найден, размер: " + imageData.length + " байт");
+                System.out.println("Файл найден, размер: " + imageData.length + " байт");
 
                 ByteArrayResource resource = new ByteArrayResource(imageData);
 
@@ -39,7 +39,7 @@ public class ImageController {
                     mediaType = MediaType.IMAGE_JPEG;
                 }
 
-                System.out.println("✅ Отправляем изображение");
+                System.out.println("Отправляем изображение");
                 System.out.println("========================================");
 
                 return ResponseEntity.ok()
@@ -47,16 +47,16 @@ public class ImageController {
                         .contentLength(imageData.length)
                         .body(resource);
             } else {
-                System.out.println("❌ Файл не найден по пути: " + absolutePath);
+                System.out.println("Файл не найден по пути: " + absolutePath);
                 System.out.println("========================================");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
         } catch (IOException e) {
-            System.out.println("❌ Ошибка чтения файла: " + e.getMessage());
+            System.out.println("Ошибка чтения файла: " + e.getMessage());
             System.out.println("========================================");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         } catch (Exception e) {
-            System.out.println("❌ Неожиданная ошибка: " + e.getMessage());
+            System.out.println("Неожиданная ошибка: " + e.getMessage());
             e.printStackTrace();
             System.out.println("========================================");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
