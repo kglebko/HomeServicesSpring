@@ -1,5 +1,9 @@
+// src/main/java/com/example/HomeServices/config/WebConfig.java
 package com.example.HomeServices.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -14,6 +18,14 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Value("${file.upload-dir}")
     private String uploadDir;
+
+    // ДОБАВИЛИ БИН ObjectMapper
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        return mapper;
+    }
 
     @PostConstruct
     public void init() {

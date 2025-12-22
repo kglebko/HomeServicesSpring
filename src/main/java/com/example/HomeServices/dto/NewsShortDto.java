@@ -24,4 +24,7 @@ public class NewsShortDto {
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
+
+    // ДОБАВИТЬ ЭТО ПОЛЕ
+    private Boolean isLiked;
 }

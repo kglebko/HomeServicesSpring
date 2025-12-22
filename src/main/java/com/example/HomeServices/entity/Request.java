@@ -24,7 +24,7 @@ public class Request {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private RequestStatus status = RequestStatus.PENDING; // Дефолтное значение!
+    private RequestStatus status = RequestStatus.PENDING;
 
     private LocalDate selectedDate;
     private LocalTime selectedStartTime;
@@ -39,5 +39,5 @@ public class Request {
     private BigDecimal actualPrice;
 
     @Column(name = "user_id")
-    private Long userId; // Добавьте это поле
+    private Long userId;
 }

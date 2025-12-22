@@ -28,4 +28,8 @@ public interface NewsRepository extends JpaRepository<News, Long> {
             "LOWER(n.content) LIKE LOWER(CONCAT('%', :query, '%'))) " +
             "ORDER BY n.createdAt DESC")
     Page<News> searchNews(@Param("query") String query, Pageable pageable);
+
+    // ДОБАВИЛИ ЭТОТ МЕТОД
+    @Query("SELECT n FROM News n WHERE n.isActive = true ORDER BY n.createdAt DESC")
+    List<News> findTop10ByIsActiveTrueOrderByCreatedAtDesc();
 }

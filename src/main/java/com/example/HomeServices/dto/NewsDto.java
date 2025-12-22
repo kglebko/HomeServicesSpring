@@ -31,4 +31,7 @@ public class NewsDto {
     private Integer commentsCount;
     private String timeAgo;
     private Boolean isActive;
+
+    // ДОБАВИТЬ ЭТО ПОЛЕ
+    private Boolean isLiked;
 }

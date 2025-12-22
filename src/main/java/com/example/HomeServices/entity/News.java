@@ -1,6 +1,7 @@
 // src/main/java/com/example/HomeServices/entity/News.java
 package com.example.HomeServices.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -53,9 +54,17 @@ public class News {
     @Column(name = "likes_count")
     private Integer likesCount = 0;
 
+    // ДОБАВИЛИ ЭТО ПОЛЕ
+    @Column(name = "liked_by", columnDefinition = "JSON")
+    private String likedBy = "[]";
+
     @Column(name = "comments_count")
     private Integer commentsCount = 0;
 
     @Column(name = "is_active")
     private Boolean isActive = true;
+
+    @Transient
+    @JsonProperty("isLiked")
+    private Boolean isLiked = false;
 }
