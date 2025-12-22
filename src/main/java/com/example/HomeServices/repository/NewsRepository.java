@@ -14,16 +14,21 @@ import java.util.List;
 @Repository
 public interface NewsRepository extends JpaRepository<News, Long> {
 
+    // Находим активные новости, отсортированные по дате создания (последние сначала)
     List<News> findByIsActiveTrueOrderByCreatedAtDesc();
 
+    // С пагинацией
     Page<News> findByIsActiveTrueOrderByCreatedAtDesc(Pageable pageable);
 
+    // По категории
     List<News> findByCategoryAndIsActiveTrueOrderByCreatedAtDesc(String category);
 
+    // Последние N новостей (для главной страницы)
     @Query(value = "SELECT * FROM news WHERE is_active = true ORDER BY created_at DESC LIMIT :limit",
             nativeQuery = true)
     List<News> findLatestNews(@Param("limit") int limit);
 
+    // Поиск по заголовку или содержанию
     @Query("SELECT n FROM News n WHERE n.isActive = true AND " +
             "(LOWER(n.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(n.content) LIKE LOWER(CONCAT('%', :query, '%'))) " +

@@ -1,3 +1,4 @@
+// src/main/java/com/example/HomeServices/dto/NewsShortDto.java
 package com.example.HomeServices.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
